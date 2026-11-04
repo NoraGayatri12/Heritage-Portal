@@ -1,0 +1,28 @@
+# Virtual environment
+venv/
+**/venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Environment variables and secrets
+.env
+.env.*
+
+# Testing cache
+.pytest_cache/
+
+# Flask instance folder
+instance/
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+Thumbs.db
+.DS_Store
+
+
+!.env.example
