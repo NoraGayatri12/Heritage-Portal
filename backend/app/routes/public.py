@@ -65,3 +65,75 @@ def submit_feedback():
     db.session.add(feedback)
     db.session.commit()
     return jsonify({"success": True, "message": "Feedback submitted successfully", "data": feedback.to_dict()}), 201
+
+
+@public_bp.route("/heritage/search", methods=["GET"])
+def search_heritage():
+
+    query = request.args.get("q", "").strip()
+
+    if not query:
+        return jsonify({
+            "success": False,
+            "message": "Search query is required"
+        }), 400
+
+    sites = HeritageSite.query.filter(
+        HeritageSite.status == "active",
+        db.or_(
+            HeritageSite.name.ilike(f"%{query}%"),
+            HeritageSite.location.ilike(f"%{query}%"),
+            HeritageSite.state.ilike(f"%{query}%")
+        )
+    ).all()
+
+    return jsonify({
+        "success": True,
+        "count": len(sites),
+        "data": [site.to_dict() for site in sites]
+    }), 200
+
+
+@public_bp.route("/heritage/filter", methods=["GET"])
+def filter_heritage():
+
+    category = request.args.get("category", "").strip()
+    state = request.args.get("state", "").strip()
+
+    query = HeritageSite.query.filter_by(status="active")
+
+    if category:
+        query = query.filter(
+            HeritageSite.category.ilike(f"%{category}%")
+        )
+
+    if state:
+        query = query.filter(
+            HeritageSite.state.ilike(f"%{state}%")
+        )
+
+    sites = query.all()
+
+    return jsonify({
+        "success": True,
+        "count": len(sites),
+        "data": [site.to_dict() for site in sites]
+    }), 200
+
+
+
+@public_bp.route("/contributions/my", methods=["GET"])
+@jwt_required()
+def my_contributions():
+
+    user_id = int(get_jwt_identity())
+
+    contributions = Contribution.query.filter_by(
+        user_id=user_id
+    ).order_by(Contribution.created_at.desc()).all()
+
+    return jsonify({
+        "success": True,
+        "count": len(contributions),
+        "data": [contribution.to_dict() for contribution in contributions]
+    }), 200
